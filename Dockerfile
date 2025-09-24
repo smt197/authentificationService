@@ -20,7 +20,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 COPY composer.json composer.lock ./
 
 # Installer les dépendances PHP du projet
-RUN composer install --no-dev --no-interaction --optimize-autoloader --prefer-dist
+RUN COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --no-interaction --optimize-autoloader --prefer-dist --no-scripts
 
 # --- 3. Stage 'app' ---
 FROM base as app
