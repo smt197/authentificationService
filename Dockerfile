@@ -1,31 +1,44 @@
 # --- 1. Stage 'base' ---
 FROM php:8.2-fpm-alpine as base
-RUN apk add --no-cache supervisor nginx
+
+# Installer dépendances système de base
+RUN apk add --no-cache \
+    supervisor nginx bash git curl unzip \
+    libpng-dev oniguruma-dev libxml2-dev libzip-dev icu-dev \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl
+
 WORKDIR /var/www
 
 # --- 2. Stage 'vendor' ---
 FROM base as vendor
-RUN apk add --no-cache git curl unzip
+
+# Ajouter Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Copier uniquement les fichiers Composer pour tirer parti du cache
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-interaction --optimize-autoloader
+
+# Installer les dépendances PHP du projet
+RUN composer install --no-dev --no-interaction --optimize-autoloader --prefer-dist
 
 # --- 3. Stage 'app' ---
 FROM base as app
-RUN apk add --no-cache libpng-dev oniguruma-dev libxml2-dev \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
-# Copier le code applicatif
+# Copier tout le code applicatif
 COPY . .
 
-# Copier vendor après coup
+# Copier le dossier vendor construit au stage précédent
 COPY --from=vendor /var/www/vendor/ ./vendor/
 
+# Copier les fichiers de config Nginx et Supervisor
 COPY nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
 COPY supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
-RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache
+# Donner les permissions correctes à Laravel
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
+    && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
 EXPOSE 80
+
+# Lancer Supervisor (qui gère PHP-FPM et Nginx)
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
