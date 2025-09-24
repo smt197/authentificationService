@@ -38,5 +38,8 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
 
 EXPOSE 80 9000
 
+# Tester la configuration nginx avant de démarrer
+RUN nginx -t
+
 # Lancer Supervisor (qui gère PHP-FPM et Nginx)
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
