@@ -4,7 +4,7 @@ networks:
   auth_microservice_network:
     driver: bridge
   microservices_network:
-    external: true
+    driver: bridge
 
 volumes:
   dbdata:
