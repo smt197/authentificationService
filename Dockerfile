@@ -29,7 +29,7 @@ FROM base as app
 COPY . .
 
 # Copier les fichiers de config Nginx et Supervisor
-COPY nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
 COPY supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Donner les permissions correctes à Laravel
