@@ -5,7 +5,8 @@ FROM php:8.2-fpm-alpine as base
 RUN apk add --no-cache \
     supervisor nginx bash git curl unzip \
     libpng-dev oniguruma-dev libxml2-dev libzip-dev icu-dev \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl \
+    && git config --global --add safe.directory '*'
 
 WORKDIR /var/www
 
