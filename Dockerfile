@@ -3,7 +3,7 @@ FROM php:8.2-fpm-alpine as base
 
 # Installer dépendances système de base
 RUN apk add --no-cache \
-    supervisor nginx bash git curl unzip \
+    supervisor nginx bash git curl unzip jq \
     libpng-dev oniguruma-dev libxml2-dev libzip-dev icu-dev \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl \
     && git config --global --add safe.directory '*'
@@ -27,9 +27,6 @@ FROM base as app
 
 # Copier tout le code applicatif
 COPY . .
-
-# Copier le dossier vendor construit au stage précédent
-COPY --from=vendor /var/www/vendor/ ./vendor/
 
 # Copier les fichiers de config Nginx et Supervisor
 COPY nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
