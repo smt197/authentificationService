@@ -32,8 +32,14 @@ COPY . .
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
 COPY supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Donner les permissions correctes à Laravel
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
+# Optimiser Laravel
+RUN php artisan config:cache || true \
+    && php artisan route:cache || true \
+    && php artisan view:cache || true
+
+# Créer les dossiers nécessaires et donner les permissions correctes à Laravel
+RUN mkdir -p /var/www/bootstrap/cache /var/www/storage/logs \
+    && chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
     && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
 EXPOSE 80 9000
