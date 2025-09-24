@@ -52,7 +52,10 @@ services:
       - SESSION_DRIVER=${SESSION_DRIVER}
 
   auth_webserver:
-    image: nginx:alpine
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${AUTH_IMAGE_NAME}
     container_name: ${AUTH_WEBSERVER_NAME}
     restart: unless-stopped
     ports:
@@ -63,7 +66,7 @@ services:
     networks:
       - auth_microservice_network
     depends_on:
-      - auth_app
+      - db
 
   # =================================================================
   # INFRASTRUCTURE SERVICES
