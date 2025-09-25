@@ -56,7 +56,9 @@ RUN docker-php-ext-enable xdebug
 #     fi
 
 # Créer les répertoires nécessaires et définir les permissions
-RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
+RUN mkdir -p /app/public /app/storage /app/bootstrap/cache && \
+    chown -R www-data:www-data /app && \
+    chmod -R 775 /app/storage /app/bootstrap/cache /app/public
 
 
 

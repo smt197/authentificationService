@@ -36,8 +36,26 @@ if [ "${CACHE_DRIVER:-file}" = "database" ]; then
     php artisan migrate --force --no-interaction || echo "⚠️ Cache table migration failed"
 fi
 
-# Skip octane:install since FrankenPHP is already installed in the Docker image
-echo "⚠️ Skipping octane:install - using pre-installed FrankenPHP binary"
+# Prepare Octane FrankenPHP files manually to avoid permission issues
+echo "📁 Preparing Octane FrankenPHP files..."
+if [ ! -f /app/public/frankenphp-worker.php ]; then
+    cat > /app/public/frankenphp-worker.php << 'EOF'
+<?php
+
+use Laravel\Octane\FrankenPhp\FrankenPhpWorker;
+
+require_once __DIR__.'/../vendor/autoload.php';
+
+$worker = new FrankenPhpWorker();
+
+$worker->run();
+EOF
+    chown www-data:www-data /app/public/frankenphp-worker.php
+    chmod 644 /app/public/frankenphp-worker.php
+fi
+
+# Skip octane:install since we manually created the worker file
+echo "✅ Octane FrankenPHP worker file ready"
 
 # Clear and cache config for production
 echo "🔧 Optimizing application..."
@@ -54,8 +72,9 @@ fi
 
 # Set proper permissions
 echo "🔒 Setting permissions..."
-chown -R www-data:www-data /app/storage /app/bootstrap/cache
+chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/public
 chmod -R 775 /app/storage /app/bootstrap/cache
+chmod -R 755 /app/public
 
 echo "✅ Laravel application ready!"
 
