@@ -5,19 +5,19 @@ set -e
 
 echo "🚀 Starting Laravel application..."
 
+# Wait for database to be ready
+echo "⏳ Waiting for database connection..."
+until php artisan migrate:status > /dev/null 2>&1; do
+    echo "Database not ready, waiting 5 seconds..."
+    sleep 5
+done
 echo "✅ Database connection established"
 
 # Run migrations (skip if already exist)
 echo "🔄 Running database migrations..."
 php artisan migrate --force --no-interaction || echo "⚠️ Some migrations already exist, continuing..."
 
-# Install Octane config if not already present
-if [ ! -f /app/config/octane.php ]; then
-    echo "🚀 Installing Octane config (without binary download)..."
-    OCTANE_SKIP_BINARY_DOWNLOAD=true php artisan octane:install --server=frankenphp --no-interaction || echo "⚠️ Octane install failed, but continuing..."
-else
-    echo "✅ Octane config already present"
-fi
+php artisan octane:install --server=frankenphp
 
 # Clear and cache config for production
 echo "🔧 Optimizing application..."
