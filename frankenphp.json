@@ -1,0 +1,5 @@
+{
+  "worker": "php /app/artisan octane:frankenphp",
+  "http": "0.0.0.0:80",
+  "admin": "0.0.0.0:2019"
+}
