@@ -29,6 +29,9 @@ services:
     networks:
       - auth_microservice_network
       - microservices_network
+    ports:
+      - "${AUTH_PORT}:80"
+      - 9001:9000
     depends_on:
       - db
     environment:
