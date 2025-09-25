@@ -4,7 +4,8 @@ FROM php:8.2-fpm-alpine as base
 # Installer dépendances système de base
 RUN apk add --no-cache \
     supervisor nginx bash git curl unzip jq \
-    libpng-dev oniguruma-dev libxml2-dev libzip-dev icu-dev \
+    libpng-dev oniguruma-dev libxml2-dev libzip-dev icu-dev zlib-dev freetype-dev libjpeg-turbo-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl \
     && git config --global --add safe.directory '*'
 
