@@ -60,9 +60,8 @@ RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
 
 
-# Copier la configuration supervisor et Caddyfile
+# Copier la configuration supervisor
 COPY supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY Caddyfile /etc/caddy/Caddyfile
 
 # Copier et configurer le script de démarrage
 COPY docker-entrypoint.sh /usr/local/bin/

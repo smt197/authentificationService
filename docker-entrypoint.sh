@@ -13,8 +13,8 @@ php artisan migrate --force --no-interaction || echo "⚠️ Some migrations alr
 
 # Install Octane config if not already present
 if [ ! -f /app/config/octane.php ]; then
-    echo "🚀 Publishing Octane config..."
-    php artisan vendor:publish --provider="Laravel\Octane\OctaneServiceProvider" --tag="octane-config" --no-interaction || echo "⚠️ Octane config publish failed, but continuing..."
+    echo "🚀 Installing Octane config (without binary download)..."
+    OCTANE_SKIP_BINARY_DOWNLOAD=true php artisan octane:install --server=frankenphp --no-interaction || echo "⚠️ Octane install failed, but continuing..."
 else
     echo "✅ Octane config already present"
 fi
