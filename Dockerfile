@@ -29,8 +29,7 @@ FROM base as app
 # Copier tout le code applicatif
 COPY . .
 
-# Copier les fichiers de config Nginx et Supervisor
-COPY nginx/nginx.conf /etc/nginx/nginx.conf
+# Copier les fichiers de config Supervisor
 COPY supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Optimiser Laravel

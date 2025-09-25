@@ -28,6 +28,7 @@ services:
     volumes:
       - ./:/var/www
       - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
     networks:
       - auth_microservice_network
       - microservices_network
