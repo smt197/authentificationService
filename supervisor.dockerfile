@@ -45,10 +45,12 @@ RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs || \
 RUN docker-php-ext-enable xdebug
 
 
-# Installer les dépendances npm et compiler les assets
+# Installer les dépendances npm et compiler les assets (optionnel)
 RUN if [ -f package.json ]; then \
+        echo "Installing npm dependencies..." && \
         npm ci && \
-        npm run build; \
+        echo "Building assets..." && \
+        (npm run build || echo "npm build failed, continuing..."); \
     else \
         echo "No package.json found, skipping npm build"; \
     fi
