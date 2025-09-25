@@ -43,6 +43,8 @@ RUN mkdir -p /var/www/bootstrap/cache /var/www/storage/logs \
     && chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
     && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
+COPY php/www.conf /usr/local/etc/php-fpm.d/www.conf
+
 EXPOSE 80 9000
 
 # Lancer Supervisor (qui gère PHP-FPM et Nginx)
