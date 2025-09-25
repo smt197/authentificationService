@@ -11,12 +11,12 @@ echo "✅ Database connection established"
 echo "🔄 Running database migrations..."
 php artisan migrate --force --no-interaction || echo "⚠️ Some migrations already exist, continuing..."
 
-# Install Octane if not already installed
+# Install Octane config if not already present
 if [ ! -f /app/config/octane.php ]; then
-    echo "🚀 Installing Octane with FrankenPHP..."
-    php artisan octane:install --server=frankenphp --no-interaction || echo "⚠️ Octane install failed, but continuing..."
+    echo "🚀 Publishing Octane config..."
+    php artisan vendor:publish --provider="Laravel\Octane\OctaneServiceProvider" --tag="octane-config" --no-interaction || echo "⚠️ Octane config publish failed, but continuing..."
 else
-    echo "✅ Octane already installed"
+    echo "✅ Octane config already present"
 fi
 
 # Clear and cache config for production
