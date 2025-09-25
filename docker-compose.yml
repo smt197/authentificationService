@@ -29,9 +29,6 @@ services:
     networks:
       - auth_microservice_network
       - microservices_network
-    ports:
-      - "${AUTH_PORT}:80"
-      - 9001:9000
     depends_on:
       - db
     environment:
@@ -58,6 +55,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    command: nginx -g 'daemon off;'
     image: ${AUTH_IMAGE_NAME}
     container_name: ${AUTH_WEBSERVER_NAME}
     restart: unless-stopped

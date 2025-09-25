@@ -48,4 +48,4 @@ COPY php/www.conf /usr/local/etc/php-fpm.d/www.conf
 EXPOSE 80 9000
 
 # Lancer Supervisor (qui gère PHP-FPM et Nginx)
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+CMD ["php-fpm"]
