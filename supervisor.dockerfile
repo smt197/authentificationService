@@ -1,7 +1,7 @@
 # Image de base FrankenPHP
 FROM dunglas/frankenphp:latest-php8.3
 
-
+RUN chmod +x /usr/local/bin/frankenphp
 # Installer les extensions PHP nécessaires pour Laravel
 RUN install-php-extensions \
    pdo_mysql \

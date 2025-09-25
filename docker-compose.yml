@@ -30,7 +30,9 @@ services:
     working_dir: /app
     ports:
       # Mappe le port 80 du conteneur (utilisé par FrankenPHP) au port externe défini par AUTH_PORT
-      - "${AUTH_PORT}:80"
+      - "${AUTH_PORT:-8081}:80"
+      # Expose aussi le port admin de FrankenPHP pour monitoring
+      - "2019:2019"
     volumes:
       # ATTENTION : On ne monte plus le code source complet (./:/app)
       # On monte uniquement le dossier storage pour la persistance des données
@@ -39,7 +41,8 @@ services:
       - auth_microservice_network
       - microservices_network
     depends_on:
-      - db
+      db:
+        condition: service_started
     environment:
       # Vos variables d'environnement restent les mêmes
       - APP_ENV=${APP_ENV}
@@ -58,8 +61,11 @@ services:
       - RABBITMQ_USER=${RABBITMQ_USER}
       - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
       - RABBITMQ_VHOST=${RABBITMQ_VHOST}
-      - CACHE_DRIVER=${CACHE_DRIVER}
-      - SESSION_DRIVER=${SESSION_DRIVER}
+      - CACHE_DRIVER=${CACHE_DRIVER:-file}
+      - SESSION_DRIVER=${SESSION_DRIVER:-file}
+      # Variables spécifiques à Coolify
+      - SERVICE_FQDN_AUTH_APP=${SERVICE_FQDN_AUTH_APP}
+      - SERVICE_URL_AUTH_APP=${SERVICE_URL_AUTH_APP}
 
   # =================================================================
   # INFRASTRUCTURE SERVICES (Inchangé)
@@ -72,9 +78,15 @@ services:
     environment:
       MYSQL_DATABASE: ${DB_DATABASE}
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ALLOW_EMPTY_PASSWORD: "false"
+      MYSQL_RANDOM_ROOT_PASSWORD: "false"
     volumes:
       - dbdata:/var/lib/mysql
     networks:
       - auth_microservice_network
     ports:
-      - "${DB_PORT_EXTERNAL}:3306"
+      - "${DB_PORT_EXTERNAL:-3307}:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
