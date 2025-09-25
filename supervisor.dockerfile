@@ -13,7 +13,8 @@ RUN install-php-extensions \
    gd \
    redis \
    opcache \
-   pcntl
+   pcntl \
+   sockets
 
 
 # Installer composer
@@ -36,7 +37,8 @@ COPY . /app
 RUN pecl install xdebug
 
 # Installer les dépendances PHP
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs || \
+    composer install --no-dev --optimize-autoloader
 
 
 # Enable PHP extensions
