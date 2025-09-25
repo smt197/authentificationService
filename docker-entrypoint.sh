@@ -29,7 +29,15 @@ echo "✅ Database connection established"
 echo "🔄 Running database migrations..."
 php artisan migrate --force --no-interaction || echo "⚠️ Some migrations already exist, continuing..."
 
-php artisan octane:install --server=frankenphp
+# Create cache table if using database cache
+if [ "${CACHE_DRIVER:-file}" = "database" ]; then
+    echo "📦 Creating cache table..."
+    php artisan cache:table || echo "⚠️ Cache table creation skipped"
+    php artisan migrate --force --no-interaction || echo "⚠️ Cache table migration failed"
+fi
+
+# Skip octane:install since FrankenPHP is already installed in the Docker image
+echo "⚠️ Skipping octane:install - using pre-installed FrankenPHP binary"
 
 # Clear and cache config for production
 echo "🔧 Optimizing application..."
