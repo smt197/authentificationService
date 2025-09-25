@@ -1,0 +1,92 @@
+version: '3.8'
+
+networks:
+  auth_microservice_network:
+    driver: bridge
+  microservices_network:
+    driver: bridge
+
+volumes:
+  dbdata:
+    driver: local
+  # On ajoute un volume nommé pour le stockage de Laravel
+  auth_storage:
+    driver: local
+
+services:
+  # =================================================================
+  # AUTHENTICATION MICROSERVICE (FrankenPHP + Supervisor)
+  # =================================================================
+
+  auth_app:
+    build:
+      context: .
+      # On pointe vers votre nouveau Dockerfile
+      dockerfile: supervisor.dockerfile
+    image: ${AUTH_IMAGE_NAME:-auth-microservice} # Ajout d'une valeur par défaut
+    container_name: ${AUTH_CONTAINER_NAME:-auth-app} # Ajout d'une valeur par défaut
+    restart: unless-stopped
+    # Le working_dir est maintenant /app comme défini dans votre Dockerfile
+    working_dir: /app
+    ports:
+      # Mappe le port 80 du conteneur (utilisé par FrankenPHP) au port externe défini par AUTH_PORT
+      - "${AUTH_PORT:-8081}:80"
+      # Expose aussi le port admin de FrankenPHP pour monitoring
+      - "2019:2019"
+    volumes:
+      # ATTENTION : On ne monte plus le code source complet (./:/app)
+      # On monte uniquement le dossier storage pour la persistance des données
+      - auth_storage:/app/storage
+    networks:
+      - auth_microservice_network
+      - microservices_network
+    depends_on:
+      db:
+        condition: service_started
+    environment:
+      # Vos variables d'environnement restent les mêmes
+      - APP_ENV=${APP_ENV}
+      - APP_DEBUG=${APP_DEBUG}
+      - APP_KEY=${APP_KEY}
+      - APP_URL=${APP_URL}
+      - DB_CONNECTION=${DB_CONNECTION}
+      - DB_HOST=${DB_HOST} # Le conteneur de BDD s'appelle 'db'
+      - DB_PORT=${DB_PORT}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - QUEUE_CONNECTION=${QUEUE_CONNECTION}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - RABBITMQ_VHOST=${RABBITMQ_VHOST}
+      - CACHE_DRIVER=${CACHE_DRIVER:-file}
+      - SESSION_DRIVER=${SESSION_DRIVER:-file}
+      # Variables spécifiques à Coolify
+      - SERVICE_FQDN_AUTH_APP=${SERVICE_FQDN_AUTH_APP}
+      - SERVICE_URL_AUTH_APP=${SERVICE_URL_AUTH_APP}
+
+  # =================================================================
+  # INFRASTRUCTURE SERVICES (Inchangé)
+  # =================================================================
+
+  db:
+    image: mysql:8.0
+    container_name: ${DB_CONTAINER_NAME:-auth-db} # Ajout d'une valeur par défaut
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ALLOW_EMPTY_PASSWORD: "false"
+      MYSQL_RANDOM_ROOT_PASSWORD: "false"
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - auth_microservice_network
+    ports:
+      - "${DB_PORT_EXTERNAL:-3307}:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
