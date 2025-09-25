@@ -46,14 +46,14 @@ RUN docker-php-ext-enable xdebug
 
 
 # Installer les dépendances npm et compiler les assets (optionnel)
-RUN if [ -f package.json ]; then \
-        echo "Installing npm dependencies..." && \
-        npm ci && \
-        echo "Building assets..." && \
-        (npm run build || echo "npm build failed, continuing..."); \
-    else \
-        echo "No package.json found, skipping npm build"; \
-    fi
+# RUN if [ -f package.json ]; then \
+#         echo "Installing npm dependencies..." && \
+#         npm ci && \
+#         echo "Building assets..." && \
+#         (npm run build || echo "npm build failed, continuing..."); \
+#     else \
+#         echo "No package.json found, skipping npm build"; \
+#     fi
 
 # Créer les répertoires nécessaires et définir les permissions
 RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
