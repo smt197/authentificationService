@@ -7,8 +7,20 @@ echo "🚀 Starting Laravel application..."
 
 # Wait for database to be ready
 echo "⏳ Waiting for database connection..."
-until php artisan migrate:status > /dev/null 2>&1; do
-    echo "Database not ready, waiting 5 seconds..."
+RETRY_COUNT=0
+MAX_RETRIES=30
+
+until php artisan tinker --execute="DB::connection()->getPdo(); echo 'Connected';" > /dev/null 2>&1; do
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+
+    if [ $RETRY_COUNT -gt $MAX_RETRIES ]; then
+        echo "❌ Database connection failed after $MAX_RETRIES attempts"
+        echo "Testing with manual connection..."
+        php artisan tinker --execute="try { DB::connection()->getPdo(); echo 'DB Connected'; } catch(Exception \$e) { echo 'DB Error: ' . \$e->getMessage(); }"
+        exit 1
+    fi
+
+    echo "Database not ready (attempt $RETRY_COUNT/$MAX_RETRIES), waiting 5 seconds..."
     sleep 5
 done
 echo "✅ Database connection established"
