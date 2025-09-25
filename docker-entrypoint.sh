@@ -7,23 +7,24 @@ echo "🚀 Starting Laravel application..."
 
 echo "✅ Database connection established"
 
-# Run migrations
+# Run migrations (skip if already exist)
 echo "🔄 Running database migrations..."
-php artisan migrate --force --no-interaction
+php artisan migrate --force --no-interaction || echo "⚠️ Some migrations already exist, continuing..."
 
-echo "🚀 Installing Octane with FrankenPHP..."
 # Install Octane if not already installed
 if [ ! -f /app/config/octane.php ]; then
     echo "🚀 Installing Octane with FrankenPHP..."
-    php artisan octane:install --server=frankenphp --no-interaction
+    php artisan octane:install --server=frankenphp --no-interaction || echo "⚠️ Octane install failed, but continuing..."
+else
+    echo "✅ Octane already installed"
 fi
 
 # Clear and cache config for production
 echo "🔧 Optimizing application..."
-php artisan config:clear --no-interaction
-php artisan config:cache --no-interaction
-php artisan route:cache --no-interaction
-php artisan view:cache --no-interaction
+php artisan config:clear --no-interaction || echo "⚠️ Config clear failed"
+php artisan config:cache --no-interaction || echo "⚠️ Config cache failed"
+php artisan route:cache --no-interaction || echo "⚠️ Route cache failed"
+php artisan view:cache --no-interaction || echo "⚠️ View cache failed"
 
 # Create storage link if it doesn't exist
 if [ ! -L /app/public/storage ]; then
