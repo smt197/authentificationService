@@ -3,16 +3,6 @@
 # Exit on any error
 set -e
 
-echo "🚀 Starting Laravel application..."
-
-# Wait for database connection
-echo "⏳ Waiting for database connection..."
-until php artisan tinker --execute="DB::connection()->getPdo();" 2>/dev/null; do
-    echo "Waiting for database..."
-    sleep 2
-done
-echo "✅ Database connection established"
-
 # Run migrations first
 echo "🔄 Running database migrations..."
 php artisan migrate --force --no-interaction
