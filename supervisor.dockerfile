@@ -76,7 +76,7 @@ COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Exposer le port Swoole
-EXPOSE 80
+EXPOSE 9080
 
 
 # Utiliser le script de démarrage qui lance supervisor
