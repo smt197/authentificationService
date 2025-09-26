@@ -1,30 +1,31 @@
-# Image de base FrankenPHP
-FROM dunglas/frankenphp:latest-php8.3
+# Image de base PHP avec extensions nécessaires
+FROM php:8.3-fpm
 
-# Fix FrankenPHP permissions and backup prevention
-RUN chmod +x /usr/local/bin/frankenphp && \
-    rm -f /usr/local/bin/frankenphp.backup
-# Installer les extensions PHP nécessaires pour Laravel
-RUN install-php-extensions \
-   pdo_mysql \
-   mysqli \
-   mbstring \
-   xml \
-   zip \
-   bcmath \
-   gd \
-   redis \
-   opcache \
-   pcntl \
-   sockets
+# Installer les dépendances système
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    supervisor \
+    && rm -rf /var/lib/apt/lists/*
+
+# Installer les extensions PHP nécessaires pour Laravel et Swoole
+RUN docker-php-ext-install pdo_mysql mbstring xml zip bcmath gd pcntl sockets \
+    && pecl install swoole redis \
+    && docker-php-ext-enable swoole redis
 
 
 # Installer composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Installer Node.js et supervisor
+# Installer Node.js
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get update && apt-get install -y nodejs supervisor \
+    && apt-get update && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
 
@@ -35,19 +36,12 @@ WORKDIR /app
 # Copier TOUT le projet Laravel
 COPY . /app
 
-# Install PHP extensions
-RUN pecl install xdebug
-
 # Installer les dépendances PHP
 RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs || \
     composer install --no-dev --optimize-autoloader
 
-# Pre-install Octane to avoid runtime permission issues
-RUN php artisan octane:install --server=frankenphp --no-interaction || echo "Octane install failed, will retry at runtime"
-
-
-# Enable PHP extensions
-RUN docker-php-ext-enable xdebug
+# Install Octane with Swoole
+RUN php artisan octane:install --server=swoole --no-interaction || echo "Octane install will be done at runtime"
 
 
 # Installer les dépendances npm et compiler les assets (optionnel)
@@ -74,8 +68,8 @@ COPY supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Exposer les ports
-EXPOSE 80 443 2019
+# Exposer le port Swoole
+EXPOSE 8000
 
 
 # Utiliser le script de démarrage qui lance supervisor

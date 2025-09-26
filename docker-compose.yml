@@ -15,7 +15,7 @@ volumes:
 
 services:
   # =================================================================
-  # AUTHENTICATION MICROSERVICE (FrankenPHP + Supervisor)
+  # AUTHENTICATION MICROSERVICE (Swoole + Supervisor)
   # =================================================================
 
   auth_app:
@@ -29,10 +29,8 @@ services:
     # Le working_dir est maintenant /app comme défini dans votre Dockerfile
     working_dir: /app
     ports:
-      # Mappe le port 80 du conteneur (utilisé par FrankenPHP) au port externe défini par AUTH_PORT
-      - "${AUTH_PORT:-8081}:80"
-      # Expose aussi le port admin de FrankenPHP pour monitoring
-      - "2019:2019"
+      # Mappe le port 8000 du conteneur (utilisé par Swoole) au port externe défini par AUTH_PORT
+      - "${AUTH_PORT:-8081}:8000"
     volumes:
       # ATTENTION : On ne monte plus le code source complet (./:/app)
       # On monte uniquement le dossier storage pour la persistance des données

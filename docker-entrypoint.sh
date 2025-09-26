@@ -36,30 +36,9 @@ if [ "${CACHE_DRIVER:-file}" = "database" ]; then
     php artisan migrate --force --no-interaction || echo "⚠️ Cache table migration failed"
 fi
 
-# Prepare Octane FrankenPHP files manually to avoid permission issues
-echo "📁 Preparing Octane FrankenPHP files..."
-if [ ! -f /app/public/frankenphp-worker.php ]; then
-    cat > /app/public/frankenphp-worker.php << 'EOF'
-<?php
-
-use Laravel\Octane\FrankenPhp\FrankenPhpWorker;
-
-require_once __DIR__.'/../vendor/autoload.php';
-
-$worker = new FrankenPhpWorker();
-
-$worker->run();
-EOF
-    chown www-data:www-data /app/public/frankenphp-worker.php
-    chmod 644 /app/public/frankenphp-worker.php
-fi
-
-# Skip octane:install since we manually created the worker file
-echo "✅ Octane FrankenPHP worker file ready"
-
-# Install Octane with FrankenPHP to avoid runtime permission issues
-echo "🔧 Installing Octane with FrankenPHP..."
-php artisan octane:install --server=frankenphp --no-interaction
+# Install Octane with Swoole to avoid permission issues
+echo "🔧 Installing Octane with Swoole..."
+php artisan octane:install --server=swoole --no-interaction
 
 # Clear and cache config for production
 echo "🔧 Optimizing application..."
