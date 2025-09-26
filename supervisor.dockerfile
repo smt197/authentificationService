@@ -1,7 +1,9 @@
 # Image de base FrankenPHP
 FROM dunglas/frankenphp:latest-php8.3
 
-RUN chmod +x /usr/local/bin/frankenphp
+# Fix FrankenPHP permissions and backup prevention
+RUN chmod +x /usr/local/bin/frankenphp && \
+    rm -f /usr/local/bin/frankenphp.backup
 # Installer les extensions PHP nécessaires pour Laravel
 RUN install-php-extensions \
    pdo_mysql \
@@ -39,6 +41,9 @@ RUN pecl install xdebug
 # Installer les dépendances PHP
 RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs || \
     composer install --no-dev --optimize-autoloader
+
+# Pre-install Octane to avoid runtime permission issues
+RUN php artisan octane:install --server=frankenphp --no-interaction || echo "Octane install failed, will retry at runtime"
 
 
 # Enable PHP extensions

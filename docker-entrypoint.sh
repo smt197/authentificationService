@@ -57,6 +57,10 @@ fi
 # Skip octane:install since we manually created the worker file
 echo "✅ Octane FrankenPHP worker file ready"
 
+# Install Octane with FrankenPHP to avoid runtime permission issues
+echo "🔧 Installing Octane with FrankenPHP..."
+php artisan octane:install --server=frankenphp --no-interaction
+
 # Clear and cache config for production
 echo "🔧 Optimizing application..."
 php artisan config:clear --no-interaction || echo "⚠️ Config clear failed"
