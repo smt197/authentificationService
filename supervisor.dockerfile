@@ -43,15 +43,6 @@ RUN composer install --no-dev --optimize-autoloader
 # Enable PHP extensions
 RUN docker-php-ext-enable xdebug
 
-
-# Installer les dépendances npm et compiler les assets
-RUN if [ -f package.json ]; then \
-        npm ci && \
-        npm run build; \
-    else \
-        echo "No package.json found, skipping npm build"; \
-    fi
-
 # Créer les répertoires nécessaires et définir les permissions
 RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
