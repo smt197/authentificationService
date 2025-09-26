@@ -3,6 +3,46 @@
 # Exit on any error
 set -e
 
+echo "🚀 Starting Laravel application..."
+
+# Wait for database connection with retry logic
+echo "⏳ Waiting for database connection..."
+max_attempts=30
+attempt=0
+
+while [ $attempt -lt $max_attempts ]; do
+    if php artisan tinker --execute="DB::connection()->getPdo();" 2>/dev/null; then
+        echo "✅ Database connection established"
+        break
+    fi
+
+    attempt=$((attempt + 1))
+    echo "Attempt $attempt/$max_attempts: Waiting for database..."
+
+    if [ $attempt -eq $max_attempts ]; then
+        echo "❌ Failed to connect to database after $max_attempts attempts"
+        echo "🔧 Trying to create user with proper permissions..."
+
+        # Try to connect as root and create/fix user permissions
+        mysql -h${DB_HOST} -uroot -p${DB_PASSWORD} -e "
+            CREATE USER IF NOT EXISTS '${DB_USERNAME}'@'%' IDENTIFIED BY '${DB_PASSWORD}';
+            GRANT ALL PRIVILEGES ON ${DB_DATABASE}.* TO '${DB_USERNAME}'@'%';
+            ALTER USER 'root'@'%' IDENTIFIED BY '${DB_PASSWORD}';
+            FLUSH PRIVILEGES;
+        " 2>/dev/null || true
+
+        # Final attempt
+        php artisan tinker --execute="DB::connection()->getPdo();" || {
+            echo "❌ Database connection failed permanently"
+            exit 1
+        }
+        echo "✅ Database connection established after fixing permissions"
+        break
+    fi
+
+    sleep 2
+done
+
 # Run migrations first
 echo "🔄 Running database migrations..."
 php artisan migrate --force --no-interaction
