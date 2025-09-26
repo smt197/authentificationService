@@ -47,7 +47,7 @@ fi
 echo "🔄 Running database migrations..."
 php artisan migrate:status
 
-# Check if sessions table exists but migration is pending
+# Check if sessions table exists but migration is pending and drop it
 if php -r "
 \$pdo = new PDO('mysql:host=${DB_HOST};port=${DB_PORT};dbname=${DB_DATABASE}', '${DB_USERNAME}', '${DB_PASSWORD}');
 \$result = \$pdo->query(\"SHOW TABLES LIKE 'sessions'\")->rowCount();
@@ -55,8 +55,12 @@ if (\$result > 0) {
     echo 'sessions_exists';
 }
 " | grep -q "sessions_exists"; then
-    echo "⚠️ Sessions table exists but migration is pending, marking as completed..."
-    php artisan migrate --fake --force --no-interaction 2025_09_23_103839_create_sessions_table || true
+    echo "⚠️ Sessions table exists but migration is pending, dropping existing table..."
+    php -r "
+    \$pdo = new PDO('mysql:host=${DB_HOST};port=${DB_PORT};dbname=${DB_DATABASE}', '${DB_USERNAME}', '${DB_PASSWORD}');
+    \$pdo->exec('DROP TABLE IF EXISTS sessions');
+    echo 'Sessions table dropped';
+    "
 fi
 
 php artisan migrate --force --no-interaction
