@@ -46,11 +46,20 @@ fi
 # Run migrations first
 echo "🔄 Running database migrations..."
 php artisan migrate:status
-php artisan migrate --force --no-interaction || {
-    echo "⚠️ Some migrations failed, trying to reset and re-run..."
-    php artisan migrate:reset --force --no-interaction
-    php artisan migrate --force --no-interaction
+
+# Check if sessions table exists but migration is pending
+if php -r "
+\$pdo = new PDO('mysql:host=${DB_HOST};port=${DB_PORT};dbname=${DB_DATABASE}', '${DB_USERNAME}', '${DB_PASSWORD}');
+\$result = \$pdo->query(\"SHOW TABLES LIKE 'sessions'\")->rowCount();
+if (\$result > 0) {
+    echo 'sessions_exists';
 }
+" | grep -q "sessions_exists"; then
+    echo "⚠️ Sessions table exists but migration is pending, marking as completed..."
+    php artisan migrate --fake --force --no-interaction 2025_09_23_103839_create_sessions_table || true
+fi
+
+php artisan migrate --force --no-interaction
 
 # Run additional seeders if any
 # echo "🚀 Running database seeder..."
