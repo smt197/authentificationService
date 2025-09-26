@@ -49,8 +49,9 @@ RUN mkdir -p /app/storage/logs /app/storage/framework/cache /app/storage/framewo
     && chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/public \
     && chmod -R 775 /app/storage /app/bootstrap/cache
 
-# Copier la configuration supervisor
+# Copier la configuration supervisor et Caddy
 COPY supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY Caddyfile /etc/caddy/Caddyfile
 
 # Copier et configurer le script de démarrage
 COPY docker-entrypoint.sh /usr/local/bin/
