@@ -13,17 +13,26 @@ until nc -z "${DB_HOST}" "${DB_PORT}"; do
 done
 echo "✅ MySQL server is ready"
 
-# Now try to fix database permissions
+# Now try to fix database permissions using PHP
 echo "🔧 Setting up database permissions..."
-mysql -h"${DB_HOST}" -uroot -p"${DB_PASSWORD}" <<EOF
-CREATE DATABASE IF NOT EXISTS \`${DB_DATABASE}\`;
-CREATE USER IF NOT EXISTS '${DB_USERNAME}'@'%' IDENTIFIED BY '${DB_PASSWORD}';
-GRANT ALL PRIVILEGES ON \`${DB_DATABASE}\`.* TO '${DB_USERNAME}'@'%';
-ALTER USER 'root'@'%' IDENTIFIED BY '${DB_PASSWORD}';
-FLUSH PRIVILEGES;
-EOF
+php -r "
+try {
+    \$pdo = new PDO('mysql:host=${DB_HOST};port=${DB_PORT}', 'root', '${DB_PASSWORD}');
+    \$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-echo "✅ Database permissions configured"
+    \$pdo->exec(\"CREATE DATABASE IF NOT EXISTS \\\`${DB_DATABASE}\\\`\");
+    \$pdo->exec(\"CREATE USER IF NOT EXISTS '${DB_USERNAME}'@'%' IDENTIFIED BY '${DB_PASSWORD}'\");
+    \$pdo->exec(\"GRANT ALL PRIVILEGES ON \\\`${DB_DATABASE}\\\`.* TO '${DB_USERNAME}'@'%'\");
+    \$pdo->exec(\"ALTER USER 'root'@'%' IDENTIFIED BY '${DB_PASSWORD}'\");
+    \$pdo->exec(\"FLUSH PRIVILEGES\");
+
+    echo \"Database permissions configured successfully\n\";
+} catch (Exception \$e) {
+    echo \"Warning: Could not configure permissions: \" . \$e->getMessage() . \"\n\";
+}
+"
+
+echo "✅ Database permissions setup completed"
 
 # Test the connection with Laravel
 echo "⏳ Testing Laravel database connection..."
