@@ -1,38 +1,27 @@
-# Image de base PHP avec extensions nécessaires
-FROM php:8.3-fpm
+# Image de base FrankenPHP
+FROM dunglas/frankenphp:latest-php8.3
 
-# Installer les dépendances système et les dépendances pour Swoole
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    libzip-dev \
-    zip \
-    unzip \
-    supervisor \
-    libbrotli-dev \
-    pkg-config \
-    libssl-dev \
-    libicu-dev \
-    && rm -rf /var/lib/apt/lists/*
 
-# Installer les extensions PHP nécessaires pour Laravel et MySQL
-RUN docker-php-ext-install pdo_mysql mysqli mbstring xml zip bcmath gd pcntl sockets intl
-
-# Installer Swoole avec configuration simplifiée pour éviter les erreurs de compilation
-RUN pecl install --configureoptions 'enable-sockets="no" enable-openssl="no" enable-http2="no" enable-mysqlnd="no" enable-swoole-curl="no" enable-cares="no" enable-brotli="no"' swoole \
-    && pecl install redis \
-    && docker-php-ext-enable swoole redis
+# Installer les extensions PHP nécessaires pour Laravel
+RUN install-php-extensions \
+   pdo_mysql \
+   mysqli \
+   mbstring \
+   xml \
+   zip \
+   bcmath \
+   gd \
+   redis \
+   opcache \
+   pcntl
 
 
 # Installer composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Installer Node.js
+# Installer Node.js et supervisor
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get update && apt-get install -y nodejs \
+    && apt-get update && apt-get install -y nodejs supervisor \
     && rm -rf /var/lib/apt/lists/*
 
 
@@ -43,28 +32,32 @@ WORKDIR /app
 # Copier TOUT le projet Laravel
 COPY . /app
 
+# Install PHP extensions
+RUN pecl install xdebug
+
 # Installer les dépendances PHP
-RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs || \
-    composer install --no-dev --optimize-autoloader
-
-# Install Octane with Swoole
-RUN php artisan octane:install --server=swoole --no-interaction || echo "Octane install will be done at runtime"
+RUN composer install --no-dev --optimize-autoloader
 
 
-# Installer les dépendances npm et compiler les assets (optionnel)
-# RUN if [ -f package.json ]; then \
-#         echo "Installing npm dependencies..." && \
-#         npm ci && \
-#         echo "Building assets..." && \
-#         (npm run build || echo "npm build failed, continuing..."); \
-#     else \
-#         echo "No package.json found, skipping npm build"; \
-#     fi
+# Enable PHP extensions
+RUN docker-php-ext-enable xdebug
+
+
+# Installer les dépendances npm et compiler les assets
+RUN if [ -f package.json ]; then \
+        npm ci && \
+        npm run build; \
+    else \
+        echo "No package.json found, skipping npm build"; \
+    fi
+
+
+# Utiliser .env s'il existe, sinon copier .env.example
+# RUN if [ ! -f /app/.env ]; then cp /app/.env.example /app/.env; fi
+
 
 # Créer les répertoires nécessaires et définir les permissions
-RUN mkdir -p /app/public /app/storage /app/bootstrap/cache && \
-    chown -R www-data:www-data /app && \
-    chmod -R 775 /app/storage /app/bootstrap/cache /app/public
+RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
 
 
@@ -75,8 +68,8 @@ COPY supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Exposer le port Swoole
-EXPOSE 9080
+# Exposer les ports
+EXPOSE 80 443 2019
 
 
 # Utiliser le script de démarrage qui lance supervisor

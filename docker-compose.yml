@@ -29,8 +29,7 @@ services:
     # Le working_dir est maintenant /app comme défini dans votre Dockerfile
     working_dir: /app
     ports:
-      # Mappe le port 9080 du conteneur (utilisé par Swoole) au port externe défini par AUTH_PORT
-      - "${AUTH_PORT:-8081}:9080"
+      - "${AUTH_PORT:-8081}:80"
     volumes:
       # ATTENTION : On ne monte plus le code source complet (./:/app)
       # On monte uniquement le dossier storage pour la persistance des données
@@ -61,9 +60,6 @@ services:
       - RABBITMQ_VHOST=${RABBITMQ_VHOST}
       - CACHE_DRIVER=${CACHE_DRIVER:-file}
       - SESSION_DRIVER=${SESSION_DRIVER:-file}
-      # Variables spécifiques à Coolify
-      - SERVICE_FQDN_AUTH_APP=${SERVICE_FQDN_AUTH_APP}
-      - SERVICE_URL_AUTH_APP=${SERVICE_URL_AUTH_APP}
 
   # =================================================================
   # INFRASTRUCTURE SERVICES (Inchangé)
