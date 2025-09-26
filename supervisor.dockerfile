@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     libbrotli-dev \
     pkg-config \
     libssl-dev \
+    libicu-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Installer les extensions PHP nécessaires pour Laravel et MySQL
