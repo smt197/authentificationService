@@ -7,7 +7,7 @@ echo "🚀 Starting Laravel application..."
 
 # Wait for MySQL to be ready first
 echo "⏳ Waiting for MySQL server to be ready..."
-until mysqladmin ping -h"${DB_HOST}" --silent; do
+until nc -z "${DB_HOST}" "${DB_PORT}"; do
     echo "MySQL is unavailable - sleeping"
     sleep 2
 done
