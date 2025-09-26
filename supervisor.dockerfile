@@ -1,7 +1,7 @@
 # Image de base PHP avec extensions nécessaires
 FROM php:8.3-fpm
 
-# Installer les dépendances système
+# Installer les dépendances système et les dépendances pour Swoole
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -12,11 +12,17 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     supervisor \
+    libbrotli-dev \
+    pkg-config \
+    libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Installer les extensions PHP nécessaires pour Laravel et Swoole
-RUN docker-php-ext-install pdo_mysql mbstring xml zip bcmath gd pcntl sockets \
-    && pecl install swoole redis \
+# Installer les extensions PHP nécessaires pour Laravel et MySQL
+RUN docker-php-ext-install pdo_mysql mysqli mbstring xml zip bcmath gd pcntl sockets intl
+
+# Installer Swoole avec configuration simplifiée pour éviter les erreurs de compilation
+RUN pecl install --configureoptions 'enable-sockets="no" enable-openssl="no" enable-http2="no" enable-mysqlnd="no" enable-swoole-curl="no" enable-cares="no" enable-brotli="no"' swoole \
+    && pecl install redis \
     && docker-php-ext-enable swoole redis
 
 
