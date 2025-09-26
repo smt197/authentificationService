@@ -69,6 +69,7 @@ services:
     image: mysql:8.0
     container_name: ${DB_CONTAINER_NAME:-auth-db} # Ajout d'une valeur par défaut
     restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password --bind-address=0.0.0.0
     environment:
       MYSQL_DATABASE: ${DB_DATABASE}
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
@@ -77,6 +78,7 @@ services:
       MYSQL_ROOT_HOST: '%'
     volumes:
       - dbdata:/var/lib/mysql
+      - ./mysql-init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - auth_microservice_network
     ports:
