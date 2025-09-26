@@ -5,6 +5,12 @@ set -e
 
 echo "🚀 Starting Laravel application..."
 
+# Generate APP_KEY if it doesn't exist
+if [ -z "${APP_KEY}" ] || [ "${APP_KEY}" = "" ]; then
+    echo "🔑 Generating application key..."
+    php artisan key:generate --force --no-interaction
+fi
+
 # Wait for MySQL to be ready first
 echo "⏳ Waiting for MySQL server to be ready..."
 until nc -z "${DB_HOST}" "${DB_PORT}"; do

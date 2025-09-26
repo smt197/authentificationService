@@ -44,7 +44,10 @@ RUN composer install --no-dev --optimize-autoloader
 RUN docker-php-ext-enable xdebug
 
 # Créer les répertoires nécessaires et définir les permissions
-RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
+RUN mkdir -p /app/storage/logs /app/storage/framework/cache /app/storage/framework/sessions /app/storage/framework/views \
+    && mkdir -p /app/bootstrap/cache \
+    && chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/public \
+    && chmod -R 775 /app/storage /app/bootstrap/cache
 
 # Copier la configuration supervisor
 COPY supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
