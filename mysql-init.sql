@@ -1,10 +1,7 @@
--- Force create user with proper permissions
-DROP USER IF EXISTS 'root'@'%';
-CREATE USER 'root'@'%' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
+-- Grant privileges to root from any host
 GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
 
--- Create app user if it doesn't exist
-CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';
-GRANT ALL PRIVILEGES ON `${MYSQL_DATABASE}`.* TO '${MYSQL_USER}'@'%';
+-- Update root user host permissions
+UPDATE mysql.user SET host='%' WHERE user='root' AND host='localhost';
 
 FLUSH PRIVILEGES;
