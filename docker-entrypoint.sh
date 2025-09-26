@@ -45,7 +45,12 @@ fi
 
 # Run migrations first
 echo "🔄 Running database migrations..."
-php artisan migrate --force --no-interaction
+php artisan migrate:status
+php artisan migrate --force --no-interaction || {
+    echo "⚠️ Some migrations failed, trying to reset and re-run..."
+    php artisan migrate:reset --force --no-interaction
+    php artisan migrate --force --no-interaction
+}
 
 # Run additional seeders if any
 # echo "🚀 Running database seeder..."
